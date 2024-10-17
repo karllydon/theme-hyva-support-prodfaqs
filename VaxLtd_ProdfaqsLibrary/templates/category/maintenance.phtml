@@ -1,0 +1,68 @@
+<?php
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\SvgIcons;
+
+/**
+ * @var \VaxLtd\ProdfaqsLibrary\Block\Product\Faqs $block
+ */
+
+/** @var ViewModelRegistry $viewModels */
+/** @var HeroiconsOutline $heroicons */
+/** @var SvgIcons $hyvaicons */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+$hyvaicons = $viewModels->require(SvgIcons::class);
+
+$_productCollection = $block->getProductCollection();
+$topics = $block->getCategoryTopic($block->getQuestionTypes());
+$answerLengthAllowed = $block->allowedAnswerLength();
+?>
+<div class="mt-14 text-center">
+    <h3 class="mb-4 text-primary text-[24px] font-semibold tracking-[-.2px]"><?= __('Maintenance') ?></h3>
+    <p class="text-sm"><?= __('Here is what you can do to keep your appliance performing at its best.') ?></p>
+</div>
+<?php if (count($topics)): ?>
+    <div class="my-8"
+        x-data="{ expandedIndex: 0 }">
+        <?php foreach ($topics as $index => $topic): ?>
+            <div class="mb-0.5">
+                <button type="button"
+                    class="w-full flex items-center justify-between bg-[#f8f8f8] py-[17px] px-4 md:px-8 text-primary text-left md:text-xl font-semibold hover:cursor-pointer"
+                    @click="expandedIndex === <?= $index ?> ? expandedIndex = -1 : expandedIndex = <?= $index ?>">
+                    <span><?= $topic['topic_title'] ?></span>
+                    <?= $hyvaicons->plusHtml('md:w-6 md:h-6', 16, 16, ['x-show' => "expandedIndex !== $index", 'stroke-width' => 10]) ?>
+                    <?= $hyvaicons->minusHtml('md:w-6 md:h-6', 16, 16, ['x-show' => "expandedIndex === $index", 'stroke-width' => 10]) ?>
+                </button>
+                <div class="relative px-6 border border-[#f8f8f8]"
+                     x-show="expandedIndex === <?= $index ?>"
+                     x-collapse>
+                    <?php
+                    $faqs = $block->getFaqsCollectionByTopicId($topic['topic_id']);
+                    if (count($faqs)) {
+                        ?>
+                        <?php foreach ($faqs as $faqIndex => $faq): ?>
+                            <div class="my-6 text-sm">
+                                <?php echo $faq["title"]; ?>
+                            </div>
+                            <div class="pb-5"><?php
+                                $answer = $block->getAnswerContentByFaq($faq);
+                                echo $answer;
+                                ?>
+                            </div>
+                        <?php endforeach ?>
+                        <?php
+                    } else {
+                        echo __('There are no faqs for this topic.');
+                    }
+                    ?>
+                </div>
+            </div>
+        <?php endforeach ?>
+    </div>
+<?php else: ?>
+    <div class="mt-10 text-center text-darkgrayish">
+        <?= __('Coming soon – please refer to the user guide.') ?>
+    </div>
+<?php endif ?>

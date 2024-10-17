@@ -1,0 +1,35 @@
+<?php
+/** @var \VaxLtd\SupportPortal\Block\Category\Category $block */
+$categories = $block->getCurrentCategoryChildren();
+if ($categories) {
+    ?>
+    <div class="max-w-7xl mx-auto px-0 md:px-5">
+        <ul class="product-types grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+            <?php
+            foreach ($categories as $category) {
+                $categoryImage = $category['image'];
+                ?>
+                <li class="bg-[#f8f8f8]">
+                    <a class="w-full overflow-hidden min-h-[215px] md:min-h-[295px] lg:min-h-[360px] flex flex-col justify-center items-center text-center"
+                       href="<?php echo $category['url']; ?>"
+                       x-data="{ hover: false }"
+                       @mouseenter="hover = true"
+                       @mouseleave="hover = false"
+                    >
+                        <img src="<?php echo $categoryImage; ?>"
+                             alt="<?php echo $category['name']; ?>"
+                             class="max-w-[75%] md:max-w-[256px] duration-1000"
+                             :style="{ transform: hover ? 'scale(1.04)' : '' }"
+                             loading="lazy">
+                        <h4 class="h-12 mt-4 px-4 text-base font-semibold text-darkgrayish leading-4"><?php echo $category['name']; ?></h4>
+                    </a>
+                </li>
+                <?php
+            }
+            ?>
+        </ul>
+    </div>
+    <?php echo $block->getChildHtml("contact_extra_links") ?>
+    <?php
+}
+

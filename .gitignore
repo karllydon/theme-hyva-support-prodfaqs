@@ -1,0 +1,5 @@
+/web/tailwind/node_modules/
+/vendor/
+grumphp.yml
+!grumphp.yml.sample
+/web/css/styles.css

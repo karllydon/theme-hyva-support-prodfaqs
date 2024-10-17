@@ -1,0 +1,38 @@
+<?php
+use Magento\Framework\App\Action\Action;
+?>
+<?php
+/**
+ * Product list template
+ *
+ * @var $block \Magento\Catalog\Block\Product\ListProduct
+ */
+?>
+<?php
+
+$subCategories = $block->getCurrentCategorySubcategories();
+
+$_productCollection = $block->getLoadedProductCollection();
+$productsSortedByPos = $block->sortProductsByPosition($_productCollection);
+$productData = [];
+?>
+<?php if (count($productsSortedByPos) && !$subCategories) : ?>
+    <?php
+    if ($block->getMode() == 'grid') {
+        $viewMode = 'grid';
+        $image = 'category_page_grid';
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+    } else {
+        $viewMode = 'list';
+        $image = 'category_page_list';
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
+    }
+    /**
+     * Position for actions regarding image size changing in vde if needed
+     */
+    $pos = $block->getPositioned();
+    ?>
+    <?= $block->getChildHtml('product.gallery.register') ?>
+    <?= $block->getChildHtml('product.anchor.links') ?>
+    <?= $block->getChildHtml('product.collateral') ?>
+<?php endif; ?>

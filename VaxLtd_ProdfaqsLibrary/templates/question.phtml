@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @var \VaxLtd\ProdfaqsLibrary\Block\Troubleshooting $block
+ */
+
+$faq = $block->getFaq();
+?>
+<?php if ($block->getCurrentTopicId()) : ?>
+    <li>
+        <?php if ($faq): ?>
+            <div class="check mb-3 text-primary font-bold text-base tracking-[.03em]"><?= $faq["title"]; ?></div>
+            <div class="faq-des">
+                <?php $newFaqAnswerContent = $block->getNewFaqAnswer($faq["id"]); ?>
+                <?php if ($newFaqAnswerContent): ?>
+                    <?= $newFaqAnswerContent; ?>
+                <?php else: ?>
+                    <?= $faq["faq_answer"]; ?>
+                <?php endif; ?>
+            </div>
+
+            <div class="mt-2">
+                <?php if ($faq["followup_question"]): ?>
+                    <h3 class="block mb-5 text-primary font-bold text-base tracking-[.03em]"><?= $faq["followup_question"] ?></h3>
+                <?php endif; ?>
+                <div class="flex">
+                    <?php if ($faq["followup_re_label"]): ?>
+                        <a href="<?= $block->getLink() ?>"
+                            @click="getFaq('<?= $faq["followup_re_id"] ?>')"
+                            class="btn btn-secondary mr-4 border text-primary hover:bg-primary hover:text-white"
+                            title="<?= __("Yes it's running") ?>"><?= __($faq["followup_re_label"]) ?></a>
+                    <?php endif; ?>
+                    <?php if ($faq["followup_unre_label"]): ?>
+                        <a href="<?= $block->getLink() ?>"
+                            @click="getFaq('<?= $faq["followup_unre_id"] ?>')"
+                            class="btn btn-secondary border text-primary hover:bg-primary hover:text-white">
+                            <?= __($faq["followup_unre_label"]) ?>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </li>
+<?php endif; ?>

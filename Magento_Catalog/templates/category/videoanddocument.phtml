@@ -1,0 +1,231 @@
+<?php
+
+use Magento\Framework\App\Action\Action;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\SvgIcons;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/**
+ * Product list template
+ *
+ * @var \VaxLtd\SupportPortal\Block\Category\VideoAndDocument $block
+ */
+
+/** @var ViewModelRegistry $viewModels */
+/** @var SvgIcons $hyvaicons */
+/** @var HeroiconsOutline $heroicons */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+$hyvaicons = $viewModels->require(SvgIcons::class);
+
+$_productCollection = $block->getProductCollection();
+$productHelper = $this->helper('VaxLtd\Catalog\Helper\Product');
+$_imgHelper = $this->helper('Magento\Catalog\Helper\Image');
+$image = 'user_guide_thumnail';
+$categoryRangeVideos = $block->getRangeVideos();
+$placeholderUrl = $block->getPlaceHolderImage();
+$productData = [];
+?>
+
+<?php if ($_productCollection->count()) : ?>
+<?php
+    foreach ($_productCollection as $_product) {
+        $productData[] = [
+            'product_id' => $_product->getId(),
+            'product_model_no' => $_product->getUkProductNo(),
+            'product_store_id' => $_product->getStore()->getId(),
+            'element_apply_id' => 'user-guides-product'
+        ];
+    }
+?>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('multipleUserGuides', () => ({
+            data: [],
+            init() {
+                const productData = <?= json_encode($productData) ?>;
+                const payload = new URLSearchParams();
+
+                productData.forEach((product, index) => {
+                    Object.entries(product).forEach(([key, value]) => {
+                        payload.append(`productData[${index}][${key}]`, value);
+                    })
+                });
+
+                fetch('<?= $block->getUrl('support/ajax/loadMultiUserguides') ?>?' + payload.toString())
+                    .then(res => res.json())
+                    .then(data => this.data = data)
+            },
+            getUserGuideUrls(productId) {
+                const matchingGuide = this.data.find(guide => guide.productId === productId);
+                if(!matchingGuide) return [];
+                return matchingGuide.userguides.map(guide => matchingGuide.baseUrl + guide.url);
+            }
+        }));
+
+        <?php if (!empty($categoryRangeVideos) && $categoryRangeVideos !== '[]') : ?>
+        Alpine.data('howToVideos', () => ({
+            mobileDisplayCount: 1,
+            pageSize: 1,
+            currentPage: 1,
+            slideToShow: 3,
+            slideToScroll: 1,
+            videos: <?= $categoryRangeVideos ?>,
+            init() {
+                this.pageSize = Math.ceil((this.videos.length - this.slideToShow + this.slideToScroll) / this.slideToScroll);
+                this.slider = this.$refs.slider;
+            },
+            scrollTo(page) {
+                if(page < 1) this.currentPage = this.pageSize;
+                else if(page > this.pageSize)  this.currentPage = 1;
+                else this.currentPage = page;
+                this.scrollToCurrentPage();
+            },
+            scrollToCurrentPage() {
+                const destination = this.slider.children[1].offsetWidth * this.slideToScroll * (this.currentPage - 1);
+                this.slider.scrollLeft = destination;
+            },
+            loadVideoPopup(src) {
+                const pattern = /(\?v=|embed\/|.be\/|&v)((\w|-)*)/;
+                const videoId = src.match(pattern);
+                if (!videoId) return;
+                const embedUrl = `https://www.youtube.com/embed/${videoId[2]}?autoplay=1&autohide=1&fs=1&rel=0&hd=1&wmode=transparent&enablejsapi=1&html5=1`;
+                this.$dispatch('load-video-popup', { url: embedUrl });
+            }
+        }))
+        <?php endif ?>
+    })
+</script>
+
+<div class="w-screen ml-[50%] bg-[#f8f8f8] my-10 py-10 px-5"
+    style="transform: translateX(-50%);">
+    <div class="max-w-[1202px] mx-auto xl:px-5">
+        <div class="mb-10 text-center">
+            <h3 class="mb-4 text-primary text-[24px] font-semibold tracking-[-.2px]">
+                <?= __('How to videos and documents') ?></h3>
+            <p class="text-sm">
+                <?= __('Useful video and PDF guides, showing you how to use, maintain and fix your Vax product.') ?>
+            </p>
+        </div>
+        <?php if (!empty($categoryRangeVideos) && $categoryRangeVideos !== '[]') : ?>
+        <div x-data="howToVideos"
+            @resize.debounce.window="scrollToCurrentPage()"
+            class="mb-9 md:px-0">
+            <div class="relative">
+                <div class="snap lg:flex overflow-auto"
+                    x-ref="slider">
+                    <template x-for="(video, index) in videos">
+                        <div class="lg:mr-[22px] lg:block flex-none lg:w-1/3 mb-2"
+                            :class="{ hidden: index >= mobileDisplayCount }">
+                            <div class="bg-white shadow-miniSearch">
+                                <div class="relative cursor-pointer"
+                                    @click="loadVideoPopup(video.url)">
+                                    <img :src="video.thumbnail"
+                                        :alt="video.title"
+                                        loading="lazy" class="w-full md:h-[273px] object-cover ">
+                                    <?= $hyvaicons->playRegularHtml(
+                                        'absolute top-1/2 left-1/2 text-white z-foreground',
+                                        76,
+                                        76,
+                                        ['style' => 'transform: translate(-50%, -50%)']
+                                    ) ?>
+                                    <span class="absolute inset-0 bg-black bg-opacity-[.4]"></span>
+                                </div>
+                                <h5 class="h-[105px] py-[30px] px-[27px] font-semibold text-neutral-700"
+                                    x-text="video.title"></h5>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="hidden"
+                    :class="{ 'lg:block': pageSize > 1 }">
+                    <button type="button"
+                        @click="scrollTo(--currentPage)"
+                        class="absolute top-1/2 -translate-y-1/2 left-5 w-7 h-7 bg-[#9d9da1] rounded-full">
+                        <?= $heroicons->chevronLeftHtml('text-white mx-auto', 14, 14) ?>
+                    </button>
+                    <button type="button"
+                        @click="scrollTo(++currentPage)"
+                        class="absolute top-1/2 -translate-y-1/2 right-5 w-7 h-7 bg-[#9d9da1] rounded-full">
+                        <?= $heroicons->chevronRightHtml('text-white mx-auto', 14, 14) ?>
+                    </button>
+                </div>
+            </div>
+            <button type="button"
+                @click="mobileDisplayCount++"
+                x-show="mobileDisplayCount < videos.length"
+                class="btn btn-primary w-full lg:hidden"><?= __('Load more') ?></button>
+        </div>
+        <?php endif ?>
+        <div x-data="multipleUserGuides"
+            class="mb-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5 xl:px-4">
+            <?php foreach ($_productCollection as $_product) : ?>
+            <div class="relative grid grid-rows-[auto,1fr,auto]">
+                <?php
+                $_productId = $_product->getId();
+                $productUrl = $block->getUrl('*/*/*', ['_use_rewrite' => true]) . '?product-id=' . $_productId;
+                $imageUrl = $_imgHelper->init($_product, 'user_guide_thumnail')
+                    ->setImageFile($_product->getData('user_guide_thumnail'))
+                    ->getUrl();
+                ?>
+                <a href="<?= $productUrl ?>"
+                    class="relative overflow-hidden bg-white box-border shadow-miniSearch border border-solid border-[#e9eaee] pb-[146%]">
+                    <span class="absolute inset-4 flex justify-center items-center">
+                        <img class="block m-auto w-full h-full max-w-[265px] object-contain"
+                            src="<?= $imageUrl ?>"
+                            alt="<?= $_product->getName() ?>"
+                            loading="lazy">
+                    </span>
+                    <span
+                        class="absolute left-5 bottom-3.5 text-primary text-xs font-semibold"><?= $_product->getUkProductNo() ?></span>
+                </a>
+                <a class="block mt-4 lg:mt-8 mb-2 lg:mb-2.5 text-primary font-semibold"
+                    href="<?= $productUrl ?>"
+                    title="<?= $_product->getName() ?>">
+                    <?= $_product->getName() ?>
+                </a>
+                <div class="text-blue text-sm">
+                    <template x-for="url in getUserGuideUrls('<?= $_productId ?>')">
+                        <div class="mt-[5px]">
+                            <a :href="url"><?= $hyvaicons->downloadHtml('inline mr-1 align-text-bottom', 12, 12) ?><span
+                                    class="align-middle"><?= __('Download user guide') ?></span></a>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <?php endforeach ?>
+        </div>
+    </div>
+</div>
+
+<?php if (!empty($categoryRangeVideos) && $categoryRangeVideos !== '[]') : ?>
+<div x-data="{
+        show: false,
+        videoUrl: ''
+    }"
+    x-init="$watch('show', () => document.documentElement.dataset.scrollLock = show)"
+    @load-video-popup.window="show = true; videoUrl = $event.detail.url">
+    <template x-if="show">
+        <div class="fixed inset-0 bg-black/80 z-dialog flex items-center justify-center"
+            @click.self="show = false">
+            <div class="w-[640px] max-w-[90%]">
+                <div class="relative pb-[56.25%]">
+                    <iframe :src="videoUrl"
+                        frameborder="0"
+                        allow="autoplay; fullscreen"
+                        width="100%"
+                        height="100%"
+                        class="absolute inset-0"
+                        @load='$el.contentWindow.postMessage(`{"event":"command","func":"playVideo","args":""}`,"*")'></iframe>
+                </div>
+            </div>
+            <button type="button"
+                @click="show = false"
+                class="fixed top-0 right-0 bg-[#262626] text-[#ccc] w-11 h-11 hover:bg-[#e2e2e2] hover:text-white">
+                <?= $heroicons->xHtml('text-white mx-auto') ?>
+            </button>
+        </div>
+    </template>
+</div>
+<?php endif ?>
+<?php endif ?>

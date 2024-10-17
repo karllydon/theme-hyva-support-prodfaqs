@@ -1,0 +1,12 @@
+<?php
+/** @var \VaxLtd\SupportPortal\Block\Category\Category $block */
+
+$categories = $block->getCurrentCategoryChildren();
+
+if ($categories) {
+    ?>
+    <div class="registration-main-box">
+        <?= $block->getChildHtml('support.section.bottom') ?>
+    </div>
+    <?php
+}

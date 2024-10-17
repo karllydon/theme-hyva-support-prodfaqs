@@ -1,0 +1,45 @@
+<?php
+
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/** @var HeroiconsOutline $heroicons */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<div class="w-[100vw] ml-[50%] flex flex-col lg:flex-row items-start lg:items-center justify-center my-6 py-5 px-4 lg:px-0 lg:shadow-miniSearch clear-both lg:border-t-[0.25px] border-solid border-[#0000001a] "
+     style="transform: translateX(-50%);" x-data>
+    <span class="lg:hidden font-bold text-primary pb-3 text-[24px] tracking-[-.2px]">
+        <?php echo __('Quick links:') ?>
+    </span>
+    <a x-on:click="scrollToSection('spares_accessories')" title="<?php echo __('Spares &amp; Accessories') ?>"
+       class="relative flex justify-start items-center w-full lg:w-auto px-0 xl:px-16 py-[15px] lg:py-0 text-base text-darkgrayish font-bold border-b border-solid border-[#0000001a] lg:border-none cursor-pointer">
+        <?= $heroicons->chevronRightHtml('mr-2 lg:hidden', 18, 18) ?>
+        <?php echo __('Spares &amp; Accessories') ?>
+    </a>
+    <a x-on:click="scrollToSection('videoanddocuments')" title="<?php echo __('How to video & documents') ?>"
+       class="relative flex justify-start items-center w-full lg:w-auto px-0 xl:px-16 py-[15px] lg:py-0 text-base text-darkgrayish font-bold border-b border-solid border-[#0000001a] lg:border-none cursor-pointer">
+        <?= $heroicons->chevronRightHtml('mr-2 lg:hidden', 18, 18) ?>
+        <?php echo __('How to video & documents') ?>
+    </a>
+    <a x-on:click="scrollToSection('maintenance')" title="<?php echo __('Maintenance') ?>"
+       class="relative flex justify-start items-center w-full lg:w-auto px-0 xl:px-16 py-[15px] lg:py-0 text-base text-darkgrayish font-bold border-b border-solid border-[#0000001a] lg:border-none cursor-pointer">
+        <?= $heroicons->chevronRightHtml('mr-2 lg:hidden', 18, 18) ?>
+        <?php echo __('Maintenance') ?>
+    </a>
+    <a x-on:click="scrollToSection('troubleshooting')" title="<?php echo __('Troubleshooting') ?>"
+       class="relative flex justify-start items-center w-full lg:w-auto px-0 xl:px-16 py-[15px] lg:py-0 text-base text-darkgrayish font-bold border-b border-solid border-[#0000001a] lg:border-none cursor-pointer">
+        <?= $heroicons->chevronRightHtml('mr-2 lg:hidden', 18, 18) ?>
+        <?php echo __('Troubleshooting') ?>
+    </a>
+</div>
+<script>
+    function scrollToSection(target) {
+        const element = document.getElementById(target);
+        if (element) {
+            element.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        }
+    }
+</script>

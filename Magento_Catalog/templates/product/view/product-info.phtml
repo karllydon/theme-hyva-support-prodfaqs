@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Override to custom style, show data to description pdp
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\ProductAttributes;
+use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\Wishlist;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+/** @var ProductAttributes $attributesViewModel */
+$attributesViewModel = $viewModels->require(ProductAttributes::class);
+/** @var Product $product */
+$product = $productViewModel->getProduct();
+
+?>
+<div class="order-2 w-full mb-6 lg:pl-14 lg:w-1/2 md:mb-0">
+    <p class="hidden lg:block text-xl leading-9 mb-3 md:text-2xl text-primary title-font">
+        <strong class="font-semibold"><?= $escaper->escapeHtml($product->getName()) ?></strong>
+    </p>
+
+    <?php if ($shortDescription = $productViewModel->getShortDescription()) { ?>
+        <div class="mt-5 mb-5 lg:mt-0 leading-relaxed product-description text-sm"><?= /* @noEscape */
+            $shortDescription ?></div>
+    <?php } ?>
+
+    <div class="my-2 flex">
+        <?php echo $this->getChildHtml('usp_bar') ?>
+    </div>
+    <div class="key-features text-sm">
+        <?php echo $product->getData('product_page_key_features'); ?>
+    </div>
+
+    <?= $block->getChildHtml('product.info.form') ?>
+
+    <div class="flex flex-col items-start space-y-6 my-8 lg:md-4">
+
+    </div>
+</div>

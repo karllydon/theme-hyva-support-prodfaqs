@@ -1,0 +1,182 @@
+<?php
+
+use Magento\Framework\App\Action\Action;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+
+/**
+ * Product list gallery template
+ *
+ * @var \Magento\Catalog\Block\Product\ListProduct $block
+ */
+
+/** @var ViewModelRegistry $viewModels */
+/** @var HeroiconsOutline $heroicons */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$imgHelper = $this->helper('Magento\Catalog\Helper\Image');
+
+$subCategories = $block->getCurrentCategorySubcategories();
+$_productCollection = $block->getLoadedProductCollection();
+
+$desktopImageId = 'category_page_main_image';
+$mobileImageId = 'category_page_main_mobile_image';
+$thumbnailId = 'category_page_main_thumbnail';
+
+$sliderData = [];
+foreach ($_productCollection as $_product) {
+    array_push($sliderData, [
+        'title' => $_product->getName(),
+        'mobileImage' => $imgHelper->init($_product, $mobileImageId)->getUrl(),
+        'desktopImage' => $imgHelper->init($_product, $desktopImageId)->getUrl(),
+        'thumbnail' => $imgHelper->init($_product, $thumbnailId)->getUrl(),
+        'model' => $_product->getUkProductNo() ? $_product->getUkProductNo() : $_product->getSku()
+    ]);
+}
+?>
+<?php if ($_productCollection->count() && !$subCategories) : ?>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('gallery', () => ({
+                slideData: <?= json_encode($sliderData) ?>,
+                pageSize: <?= count($sliderData) ?>,
+                currentPage: 1
+            }));
+
+            Alpine.data('thumbnails', () => ({
+                swipe: {
+                    lastPanningTime: 0,
+                    currentScrollLeft: 0,
+                    mouseDownOffsetLeft: 0
+                },
+                init() {
+                    this.thumbnailSlider = this.$refs.thumbnailSlider;
+
+                    this.handleMouseUp = this.handleMouseUp.bind(this);
+                    this.handleMouseMove = this.handleMouseMove.bind(this);
+
+                    this.$watch('currentPage', () => this.scrollToActiveThumbnail());
+                },
+                scrollToActiveThumbnail() {
+                    const destination = this.thumbnailSlider.children[1].offsetWidth * (this.currentPage - 1);
+                    this.thumbnailSlider.scrollLeft = destination;
+                },
+                handleThumbnailClick(index) {
+                    if (!this.swipe.lastPanningTime || performance.now() - this.swipe.lastPanningTime > 200)
+                        this.currentPage = index + 1;
+                },
+                handleMouseDown(e) {
+                    this.thumbnailSlider.style.scrollSnapType = 'none';
+                    this.thumbnailSlider.style.scrollBehavior = 'unset';
+
+                    this.swipe.mouseDownOffsetLeft = e.pageX;
+                    this.swipe.currentScrollLeft = this.thumbnailSlider.scrollLeft;
+
+                    this.thumbnailSlider.addEventListener('mouseup', this.handleMouseUp);
+                    this.thumbnailSlider.addEventListener('mouseleave', this.handleMouseUp);
+                    this.thumbnailSlider.addEventListener('mousemove', this.handleMouseMove);
+                },
+                handleMouseMove(e) {
+                    const range = this.swipe.mouseDownOffsetLeft - e.pageX;
+                    this.thumbnailSlider.scrollLeft = this.swipe.currentScrollLeft + range;
+
+                    if (Math.abs(range) > 10) this.swipe.lastPanningTime = performance.now();
+                },
+                handleMouseUp(e) {
+                    this.thumbnailSlider.removeAttribute('style');
+
+                    this.thumbnailSlider.removeEventListener('mouseup', this.handleMouseUp);
+                    this.thumbnailSlider.removeEventListener('mouseleave', this.handleMouseUp);
+                    this.thumbnailSlider.removeEventListener('mousemove', this.handleMouseMove);
+                }
+            }))
+        })
+    </script>
+
+    <div x-data="gallery"
+         class="float-none lg:w-[45%] lg:float-left mb-10 w-full max-w-[550px] lg:max-w-none mx-auto select-none">
+        <div class="relative border border-black/10">
+            <div class="flex overflow-hidden"
+                 x-ref="slider">
+                <template x-for="(slide, index) in slideData">
+                    <div class="flex-none w-full relative duration-500 z-0"
+                         :class="{
+                            'opacity-100': index + 1 === currentPage,
+                            'opacity-0': index + 1 !== currentPage
+                         }"
+                         :style="{ left: $el.offsetWidth * -index + 'px' }"
+                         @resize.debounce.window="$el.style.left = $el.offsetWidth * -index + 'px'">
+                        <picture>
+                            <source media="(min-width: 768px)"
+                                    :srcset="slide.desktopImage">
+                            <img :src="slide.mobileImage"
+                                 :alt="slide.title"
+                                 :loading="index + 1 === currentPage ? 'eager' : 'lazy'"
+                                 class="block mx-auto">
+                        </picture>
+                        <span
+                                class="absolute top-0 left-0 h-8 py-[6px] px-[18px] text-[#9d9da1] text-sm bg-[#efefef]"
+                                x-text="slide.model"></span>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Navigation -->
+            <template x-if="pageSize > 1">
+                <div>
+                    <button type="button"
+                            class="absolute top-1/2 -translate-y-1/2 left-5 bg-[#9d9da1] rounded-full w-7 h-7 disabled:opacity-20 z-button"
+                            :disabled="currentPage <= 1"
+                            @click="--currentPage">
+                        <?= $heroicons->chevronLeftHtml('mx-auto text-white', 14, 14) ?>
+                    </button>
+                    <button type="button"
+                            class="absolute top-1/2 -translate-y-1/2 right-5 bg-[#9d9da1] rounded-full w-7 h-7 disabled:opacity-20 z-button"
+                            :disabled="currentPage >= pageSize"
+                            @click="++currentPage">
+                        <?= $heroicons->chevronRightHtml('mx-auto text-white', 14, 14) ?>
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <!-- Dots -->
+        <template x-if="pageSize > 1">
+            <div class="flex justify-center items-center gap-1 my-[15px] md:hidden">
+                <template x-for="i in pageSize">
+                    <button type="button"
+                            class="rounded-full"
+                            :class="{
+                                'w-3 h-3 bg-[#413f3f]': i === currentPage,
+                                'w-[6px] h-[6px] bg-[#9d9da1]': i !== currentPage
+                            }"
+                            @click="currentPage = i"></button>
+                </template>
+            </div>
+        </template>
+
+        <!-- Thumbnails -->
+        <div x-data="thumbnails"
+             @resize.debounce.window="scrollToActiveThumbnail()"
+             class="hidden md:block mt-4">
+            <div class="snap flex overflow-auto -mx-2"
+                 x-ref="thumbnailSlider"
+                 @mousedown="handleMouseDown($event)">
+                <template x-for="(slide, index) in slideData">
+                    <div class="flex-none w-1/5 px-2 cursor-pointer"
+                         @click="handleThumbnailClick(index)">
+                        <img :src="slide.thumbnail"
+                             :alt="slide.title"
+                             class="pointer-events-none"
+                             :class="{
+                                'border-2 border-primary': index + 1 === currentPage,
+                                'border border-black/10': index + 1 !== currentPage
+                             }"
+                             loading="lazy">
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>

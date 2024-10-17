@@ -1,0 +1,125 @@
+<?php
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\SvgIcons;
+
+/**
+ * @var \VaxLtd\ProdfaqsLibrary\Block\Troubleshooting $block
+ */
+
+/** @var ViewModelRegistry $viewModels */
+/** @var HeroiconsOutline $heroicons */
+/** @var SvgIcons $hyvaicons */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+$hyvaicons = $viewModels->require(SvgIcons::class);
+
+$topics = $block->getTopicsCollectionByCategory($block->getPublicOnly(), $block->getQuestionTypes());
+$sfHelper = $this->helper('VaxLtd\SfEmbeddedService\Helper\Contact');
+?>
+<div class="mt-14 mb-10 text-center">
+    <h3 class="mb-4 text-primary text-[24px] font-semibold tracking-[-.2px]">
+        <?= __('Troubleshooting') ?></h3>
+    <p class="text-sm">
+        <?= __('Here is what you can do to keep your appliance performing at its best.') ?></p>
+</div>
+<?php if (count($topics) > 0) : ?>
+   
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('troubleshootingFaqs', () => ({
+                activeSection: 0,
+                data: {},
+                isLoading: false,
+                setActiveSection(index, topicId, categoryId) {
+                    this.isLoading = true;
+                    this.activeSection = index;
+
+                    const payload = new URLSearchParams({
+                        topic: topicId,
+                        category: categoryId
+                    });
+
+                    console.log("SET ACTIVE SESSION PAYLOAD")
+                    console.log(JSON.stringify(payload))
+
+                    fetch('/prodfaqslib/faq/troubleshooting' + '?' + payload.toString())
+                        .then(res => res.text())
+                        .then(data => this.data[index] = data)
+                        .finally(() => this.isLoading = false)
+                },
+                getFaq(faqId) {
+                    this.isLoading = true;
+
+                    const payload = new FormData();
+                    payload.append('faq_id', faqId);
+                    payload.append('form_key', hyva.getFormKey());
+
+                    fetch('/prodfaqslib/faq/getFaq', {
+                        method: 'POST',
+                        body: payload
+                    })
+                        .then(res => res.text())
+                        .then(data => this.data[this.activeSection] = data)
+                        .finally(() => this.isLoading = false)
+                }
+            }))
+        });
+
+        function openContactForm() {
+            window.dispatchEvent(new CustomEvent('show-email-modal'));
+        }
+    </script>
+    
+    <div x-data="troubleshootingFaqs"
+        class="relative lg:grid grid-cols-[435px,auto]">
+        <?= $this->getLayout()->createBlock("Magento\Framework\View\Element\Template")->setTemplate("Hyva_Theme::ui/loading-block.phtml")->toHtml() ?>
+        <div>
+            <?php foreach ($topics as $i => $_topic) : ?>
+                <?php
+                if ($i === 0 && !$block->getCurrentTopicId()) $block->setCurrentTopicId($_topic['topic_id']);
+                ?>
+                <div <?php if ($block->getCurrentTopicId() === $_topic['topic_id']): ?>
+                    x-init="setActiveSection(<?= $i ?>, '<?= $_topic['topic_id'] ?>', '<?= $_topic['category_id'] ?>')"
+                    <?php endif ?>>
+                    <button type="button"
+                        class="flex justify-between items-center w-full text-primary font-semibold md:text-xl py-4 px-5 tracking-[-.2px] border"
+                        :class="{
+                                'bg-[#f8f8f8] border-[#f8f8f8]': activeSection === <?= $i ?>,
+                                'border-[#0000001a] border-t-[#f8f8f8]': activeSection !== <?= $i ?>
+                            }"
+                        @click="setActiveSection(<?= $i ?>, '<?= $_topic['topic_id'] ?>', '<?= $_topic['category_id'] ?>')"
+                        title="<?= $_topic['topic_title'] ?>">
+                        <span><?= $_topic['topic_title'] ?></span>
+                        <?= $hyvaicons->plusHtml('md:w-6 md:h-6 lg:hidden', 16, 16) ?>
+                        <?= $heroicons->chevronRightHtml('hidden lg:block', 28, 28, ['x-show' => $i . ' === activeSection']) ?>
+                    </button>
+                    <div class="lg:hidden"
+                        x-show="activeSection === <?= $i ?>"
+                        x-collapse>
+                        <div class="py-4 px-5 border border-solid border-[#0000001a] border-t-[#f8f8f8]">
+                            <ul x-html="data[<?= $i ?>] || null"></ul>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach ?>
+        </div>
+        <?php if ($block->getCurrentTopicId()) : ?>
+            <?php $_checks = $block->getQuestionsByCategory($block->getPublicOnly(), $block->getQuestionTypes()) ?>
+            <div
+                class="hidden lg:block ">
+                <?php if (count($_checks)) : ?>
+                    <ul x-html="data[activeSection] || null"
+                        class="pt-8 pb-12 px-10 border border-solid border-[#0000001a] border-t-[#f8f8f8]"></ul>
+                <?php else : ?>
+                    <?= __('There are no faqs for this topic.') ?>
+                <?php endif ?>
+            </div>
+        <?php endif ?>
+    </div>
+<?php else : ?>
+    <p class="text-center text-darkgrayish">
+        <?= __('Coming soon – please refer to the user guide.') ?>
+    </p>
+<?php endif ?>

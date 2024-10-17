@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="breadcrumbs" remove="false"/>
+        <referenceContainer name="sidebar.main" remove="true"/>
+        <referenceContainer name="content">
+            <block class="VaxLtd\SupportPortal\Block\Html\Title" name="page.main.title"
+                   template="Magento_Theme::html/title.phtml" before="-">
+                <arguments>
+                    <argument name="css_class" xsi:type="string">w-full float-none lg:w-[51%] lg:float-right pl-5 pr-7 pb-8
+                    </argument>
+                </arguments>
+            </block>
+            <block class="VaxLtd\SupportPortal\Block\Category\Category" name="category.sub.categories"
+                   template="Magento_Catalog::category/list.phtml" before="category.products">
+                <block class="Magento\Cms\Block\Block" name="contact_extra_links">
+                    <arguments>
+                        <argument name="block_id" xsi:type="string">contact_extra_links</argument>
+                    </arguments>
+                </block>
+            </block>
+            <block class="VaxLtd\SupportPortal\Block\Product\ListProduct" name="category.products.list"
+                   as="product_list" template="Magento_Catalog::product/list.phtml">
+                <container name="product.gallery.register" after="-" htmlTag="div"
+                           htmlClass="products-gallery-register max-w-7xl mx-auto xl:px-5">
+                    <block class="VaxLtd\SupportPortal\Block\Product\ListProduct" name="category.products.gallery"
+                           template="Magento_Catalog::category/products-gallery.phtml"
+                           before="category.products"></block>
+                    <container name="title_register" htmlTag="div" htmlClass="title_register">
+                        <block name="category.products.register" class="Magento\Catalog\Block\Product\View"
+                               template="Magento_Catalog::category/register.phtml">
+                        </block>
+                    </container>
+                </container>
+                <block name="product.anchor.links" class="Magento\Catalog\Block\Product\View"
+                       template="Magento_Catalog::category/anchor_links.phtml" after="category.products">
+                    <arguments>
+                        <argument name="viewModel" xsi:type="object">VaxLtd\Catalog\ViewModel\StoreView</argument>
+                    </arguments>
+                </block>
+                <container name="product.collateral" after="-" htmlTag="div"
+                           htmlClass="products-collateral max-w-7xl mx-auto xl:px-5">
+                    <container name="spares.accessories" htmlTag="div" htmlId="spares_accessories"
+                               htmlClass="products-related">
+                        <block class="VaxLtd\SupportPortal\Block\Category\Products"
+                               name="products.spares.accessories" template="Magento_Catalog::category/filter.phtml">
+                        </block>
+                    </container>
+                    <container name="support.videoanddocument" htmlTag="div" htmlId="videoanddocuments"
+                               htmlClass="videoanddocuments">
+                        <container name="support.videoanddocument.wrapper" htmlTag="div"
+                                   htmlClass="videoanddocuments-wrapper">
+                            <block class="VaxLtd\SupportPortal\Block\Category\VideoAndDocument"
+                                   name="support.videoanddocument.content"
+                                   template="Magento_Catalog::category/videoanddocument.phtml">
+                            </block>
+                        </container>
+                    </container>
+                    <container name="support.maintenance" htmlTag="div" htmlId="maintenance"
+                               htmlClass="maintenance">
+                        <block class="VaxLtd\ProdfaqsLibrary\Block\Product\Faqs" name="support.maintenance.content"
+                               template="VaxLtd_ProdfaqsLibrary::category/maintenance.phtml">
+                            <arguments>
+                                <argument name="public_only" xsi:type="string">Yes</argument>
+                                <argument name="question_types" xsi:type="array">
+                                    <item name="maintenance_item" xsi:type="string">maintenance_item</item>
+                                    <item name="general_question" xsi:type="string">general_question</item>
+                                </argument>
+                            </arguments>
+                        </block>
+                    </container>
+                    <container name="support.troubleshooting" htmlTag="div" htmlId="troubleshooting"
+                               htmlClass="box-troubleshooting">
+                        <block class="VaxLtd\ProdfaqsLibrary\Block\Troubleshooting" name="support.troubleshooting.content"
+                               template="VaxLtd_ProdfaqsLibrary::category/troubleshooting.phtml">
+                            <arguments>
+                                <argument name="public_only" xsi:type="string">Yes</argument>
+                                <argument name="question_types" xsi:type="array">
+                                    <item name="product_question" xsi:type="string">product_question</item>
+                                    <item name="general_question" xsi:type="string">general_question</item>
+                                </argument>
+                            </arguments>
+                        </block>
+                    </container>
+
+
+                
+                   
+                </container>
+            </block>
+        </referenceContainer>
+        <referenceBlock name="before.body.end">
+            <block class="VaxLtd\Contact\Block\Contact" name="contact.page.modal" template="VaxLtd_Contact::form/modal.phtml" before="-" />
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!--
+        <referenceBlock name="breadcrumbs" display="true" />
+        <referenceBlock name="product.main" remove="true" />
+        <referenceBlock name="product.features.caveat" remove="true" />
+        <referenceBlock name="bazaarvoice.reviews.tab" remove="true" />
+        <referenceBlock name="product.info.upsell" remove="true" />
+        <referenceBlock name="catalog.product.related" remove="false" />
+        <referenceBlock name="product.info.model" remove="true" />
+        <move element="page.main.title" destination="product.box.right" before="-"/>
+        <referenceContainer name="content">
+            <container name="product.box.right" htmlTag="div" htmlClass="product-box-right" after="product.info.media">
+                <block class="VaxLtd\SupportPortal\Block\Product\UserGuides" name="user.guide" template="Magento_Catalog::product/view/user-guides.phtml" after="product.right.info"/>
+            </container>
+
+            <block name="product.anchor.links" class="Magento\Catalog\Block\Product\View" template="Magento_Catalog::product/view/anchor_links.phtml" after="product.box.right" >
+                <arguments>
+                    <argument name="viewModel" xsi:type="object">VaxLtd\Catalog\ViewModel\StoreView</argument>
+                </arguments>
+            </block>
+
+            <container name="product.collateral" after="-">
+                <block class="Magento\Catalog\Block\Product\View" name="product.features" template="Magento_Catalog::product/view/features.phtml" >
+                    <container name="spares.accessories" htmlTag="div" htmlId="spares_accessories" htmlClass="box-related">
+                        <block class="Magento\Catalog\Block\Product\ProductList\Related" name="catalog.product.related" template="Magento_Catalog::product/list/items.phtml">
+                            <arguments>
+                                <argument name="type" xsi:type="string">related</argument>
+                            </arguments>
+                        </block>
+                    </container>
+                    <container name="cleaning.detergents" htmlTag="div" htmlId="cleaning_detergents" htmlClass="box-related">
+                        <block class="Magento\Catalog\Block\Product\ProductList\Related" name="catalog.product.cleaning" template="Magento_Catalog::product/list/items.phtml">
+                            <arguments>
+                                <argument name="type" xsi:type="string">cleaning-detergents</argument>
+                            </arguments>
+                        </block>
+                    </container>
+                </block>
+            </container>
+
+            <referenceBlock name="product.info.media.image">
+                <action method="setTemplate">
+                    <argument name="template" xsi:type="string">Magento_Catalog::product/view/imageonly.phtml</argument>
+                </action>
+            </referenceBlock>
+
+            <referenceContainer name="product.info.main" remove="true" />
+            <referenceContainer name="product.more.features" remove="true" />
+            <referenceContainer name="product.info.stock.sku" remove="true"/>
+            <referenceContainer name="product.info.extrahint" remove="true"/>
+            <referenceBlock name="product.info.details" remove="true"/>
+            <referenceBlock name="product.main" remove="true" />
+        </referenceContainer>
+        <move element="product.info.media" destination="content" before="-" />
+        <referenceContainer name="content.aside" remove="true" />
+        <referenceBlock name="top.search" remove="true" />
+        <referenceBlock name="support.maintenance" remove="true"/>
+        <referenceBlock name="support.troubleshooting" remove="true"/>
+        -->
+        <referenceContainer name="content">
+            <referenceBlock name="bazaarvoice.reviews" remove="true" />
+            <container name="product.collateral" after="-" htmlTag="div"
+                        htmlClass="products-collateral max-w-7xl mx-auto xl:px-5">
+                <container name="spares.accessories" htmlTag="div" htmlId="spares_accessories"
+                            htmlClass="products-related">
+                    <block class="VaxLtd\SupportPortal\Block\Category\Products"
+                            name="products.spares.accessories" template="Magento_Catalog::product/view/filter.phtml">
+                    </block>
+                </container>
+            </container>
+        </referenceContainer>
+    </body>
+</page>
+
